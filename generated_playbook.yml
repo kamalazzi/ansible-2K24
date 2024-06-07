@@ -1,0 +1,40 @@
+---
+- name: Configure Internet Customer
+  hosts: your_hosts_group
+  tasks:
+    - name: Configure VLAN 
+      vlan:
+        vlan_id: 
+        state: present
+
+    - name: Configure WAN Interface
+      ip_interface:
+        interface: WAN
+        ip: 
+        state: present
+
+    - name: Configure Gateway
+      ip_route:
+        network: 0.0.0.0/0
+        gateway: 
+        state: present
+      when: False
+
+    - name: Configure Management Interface
+      ip_interface:
+        interface: Management
+        ip: 
+        state: present
+
+    - name: Configure AAA
+      # Add your AAA configuration task here
+      # Example: aaa_configuration_task:
+      #   option: value
+      when: False
+
+    - name: Configure SNMP
+      # Add your SNMP configuration task here
+      # Example: snmp_configuration_task:
+      #   option: value
+      when: False
+    

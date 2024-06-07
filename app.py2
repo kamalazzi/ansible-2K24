@@ -1,0 +1,40 @@
+from flask import Flask, render_template, request, send_file
+import io
+import yaml
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('form.html')
+
+@app.route('/submit_form', methods=['POST'])
+def submit_form():
+    form_data = request.form.to_dict()
+    default_route = 'yes' if 'default-route' in form_data else 'no'
+
+    yaml_data = {
+        'customer': form_data['customer'],
+        'city': form_data['city'],
+        'techno': form_data['Techno'],
+        'farend': form_data['farend'],
+        'service': form_data['service'],
+        'address': form_data['address'],
+        'customer_category': form_data['customer_category'],
+        'vlan': form_data['vlan'],
+        'wan': form_data['wan'],
+        'gw': form_data['gw'],
+        'mgmt': form_data['mgmt'],
+        'machinetype': form_data['machinetype'],
+        'default_route': default_route,
+    }
+
+    yaml_output = yaml.dump(yaml_data, sort_keys=False)
+    yaml_file = io.BytesIO()
+    yaml_file.write(yaml_output.encode('utf-8'))
+    yaml_file.seek(0)
+
+    return send_file(yaml_file, mimetype='application/x-yaml', as_attachment=True, download_name='playbook.yaml')
+
+if __name__ == '__main__':
+    app.run(debug=True)

@@ -1,0 +1,10 @@
+
+- hosts: 192.168.1.1
+  vars:
+    ansible_host: 192.168.1.1
+    ansible_user: test
+    ansible_password: test
+  tasks:
+    - name: Test connection
+      ping:
+    
