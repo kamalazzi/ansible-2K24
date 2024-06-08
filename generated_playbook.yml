@@ -66,11 +66,11 @@
         - aaa accounting commands 15 default stop-only group tacacs+
         - aaa accounting system default start-stop group tacacs+
 
-  - name: Create subinterface FastEthernet0/1.1165
+  - name: Create subinterface FastEthernet0/1.
     cisco.ios.ios_config:
       lines:
-        - encapsulation dot1Q 1165
-      parents: interface FastEthernet0/1.1165
+        - encapsulation dot1Q 
+      parents: interface FastEthernet0/1.
 
   - name: Create subinterface FastEthernet0/1.882
     cisco.ios.ios_config:
@@ -78,10 +78,10 @@
         - encapsulation dot1Q 882
       parents: interface FastEthernet0/1.882
 
-  - name: Configure FastEthernet0/1.1165 - Service
+  - name: Configure FastEthernet0/1. - Service
     cisco.ios.ios_l3_interfaces:
       config:
-        - name: FastEthernet0/1.1165
+        - name: FastEthernet0/1.
           ipv4:
             - address: 10.43.81.217/31
       state: merged
@@ -175,9 +175,9 @@
     cisco.ios.ios_config:
       save_when: modified
 	
-  - name: Configure VLAN 1165
+  - name: Configure VLAN 
       vlan:
-        vlan_id: 1165
+        vlan_id: 
         state: present
 
     - name: Configure WAN Interface
@@ -191,7 +191,7 @@
         network: 0.0.0.0/0
         gateway: 
         state: present
-      when: False
+      when: True
 
     - name: Configure Management Interface
       ip_interface:
