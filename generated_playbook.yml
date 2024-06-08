@@ -42,7 +42,7 @@
         - snmp-server enable traps cpu threshold
         - snmp-server host 10.10.10.10 test
     when: snmp_output != snmp_config_present
-	when: False
+	  when: False
 
   - name: gather AAA configuration
     cisco.ios.ios_command:
@@ -65,12 +65,13 @@
         - aaa accounting exec default start-stop group tacacs+
         - aaa accounting commands 15 default stop-only group tacacs+
         - aaa accounting system default start-stop group tacacs+
-
-  - name: Create subinterface FastEthernet0/1.
+    when: False
+    
+  - name: Create subinterface FastEthernet0/1.2000
     cisco.ios.ios_config:
       lines:
-        - encapsulation dot1Q 
-      parents: interface FastEthernet0/1.
+        - encapsulation dot1Q 2000
+      parents: interface FastEthernet0/1.2000
 
   - name: Create subinterface FastEthernet0/1.882
     cisco.ios.ios_config:
@@ -78,12 +79,12 @@
         - encapsulation dot1Q 882
       parents: interface FastEthernet0/1.882
 
-  - name: Configure FastEthernet0/1. - Service
+  - name: Configure FastEthernet0/1.2000 - Service
     cisco.ios.ios_l3_interfaces:
       config:
-        - name: FastEthernet0/1.
+        - name: FastEthernet0/1.2000
           ipv4:
-            - address: 10.43.81.217/31
+            - address: 20.20.20.20
       state: merged
 
   - name: Configure FastEthernet0/1.882 - Supervision
@@ -91,7 +92,7 @@
       config:
         - name: FastEthernet0/1.882
           ipv4:
-            - address: 10.251.122.130/26
+            - address: 192.168.1.1
       state: merged
 
   - name: Configure FastEthernet1/0 - LAN CLIENT
@@ -99,7 +100,7 @@
       config:
         - name: FastEthernet1/0
           ipv4:
-            - address: 192.168.12.1/24
+            - address: 4.4.4.0/30
       state: merged
 
   - name: Configure static route service
@@ -175,28 +176,28 @@
     cisco.ios.ios_config:
       save_when: modified
 	
-  - name: Configure VLAN 
+  - name: Configure VLAN 2000
       vlan:
-        vlan_id: 
+        vlan_id: 2000
         state: present
 
     - name: Configure WAN Interface
       ip_interface:
         interface: WAN
-        ip: 
+        ip: 20.20.20.20
         state: present
 
     - name: Configure Gateway
       ip_route:
         network: 0.0.0.0/0
-        gateway: 
+        gateway: 20.20.20.19
         state: present
       when: True
 
     - name: Configure Management Interface
       ip_interface:
         interface: Management
-        ip: 
+        ip: 192.168.1.1
         state: present
 
     - name: Configure AAA
