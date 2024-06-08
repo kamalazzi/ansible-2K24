@@ -1,6 +1,6 @@
 ---
 - name: Configure Internet Customer
-  hosts: your_hosts_group
+  hosts: 192.168.1.1
   vars:
     ansible_network_os: cisco.ios.ios
     ansible_become: true
@@ -67,11 +67,11 @@
         - aaa accounting system default start-stop group tacacs+
     when: False
     
-  - name: Create subinterface FastEthernet0/1.
+  - name: Create subinterface FastEthernet0/1.1111
     cisco.ios.ios_config:
       lines:
-        - encapsulation dot1Q 
-      parents: interface FastEthernet0/1.
+        - encapsulation dot1Q 1111
+      parents: interface FastEthernet0/1.1111
 
   - name: Create subinterface FastEthernet0/1.882
     cisco.ios.ios_config:
@@ -79,12 +79,12 @@
         - encapsulation dot1Q 882
       parents: interface FastEthernet0/1.882
 
-  - name: Configure FastEthernet0/1. - Service
+  - name: Configure FastEthernet0/1.1111 - Service
     cisco.ios.ios_l3_interfaces:
       config:
-        - name: FastEthernet0/1.
+        - name: FastEthernet0/1.1111
           ipv4:
-            - address: 
+            - address: 20.20.20.20
       state: merged
 
   - name: Configure FastEthernet0/1.882 - Supervision
@@ -92,7 +92,7 @@
       config:
         - name: FastEthernet0/1.882
           ipv4:
-            - address: 
+            - address: 192.168.1.1
       state: merged
 
   - name: Configure FastEthernet1/0 - LAN CLIENT
@@ -100,7 +100,7 @@
       config:
         - name: FastEthernet1/0
           ipv4:
-            - address: 
+            - address: 4.4.4.0/30
       state: merged
 
   - name: Configure static route service
@@ -176,28 +176,28 @@
     cisco.ios.ios_config:
       save_when: modified
 	
-  - name: Configure VLAN 
+  - name: Configure VLAN 1111
       vlan:
-        vlan_id: 
+        vlan_id: 1111
         state: present
 
     - name: Configure WAN Interface
       ip_interface:
         interface: WAN
-        ip: 
+        ip: 20.20.20.20
         state: present
 
     - name: Configure Gateway
       ip_route:
         network: 0.0.0.0/0
-        gateway: 
+        gateway: 20.20.20.19
         state: present
       when: False
 
     - name: Configure Management Interface
       ip_interface:
         interface: Management
-        ip: 
+        ip: 192.168.1.1
         state: present
 
     - name: Configure AAA

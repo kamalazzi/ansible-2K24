@@ -51,7 +51,7 @@
                             <input type="text" class="form-control" id="Techno" name="Techno" placeholder="Fibre optic"
                                    required>
                             <div class="invalid-feedback">
-                                Far-end is required.
+                                Technology is required.
                             </div>
                         </div>
                         <div class="col-sm-6">
@@ -84,7 +84,10 @@
                         <div class="col-sm-6">
                             <label for="customer_category" class="form-label">Customer category :</label>
                             <input type="text" class="form-control" id="customer_category" name="customer_category"
-                                   placeholder="BANK">
+                                   placeholder="BANK" required>
+                            <div class="invalid-feedback">
+                                    Please enter customer category.
+                            </div>
                         </div>
                     </div>
                     <hr class="my-4">
@@ -94,7 +97,7 @@
         </div>
     </main>
 </div>
-<script src="/static/js/form-validation.js"></script>
+<script src="/static/main.js"></script>
     <script src="/static/index.js"></script>
 </body>
 </html>

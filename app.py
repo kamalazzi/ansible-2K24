@@ -1,24 +1,28 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 import os
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Required for session usage
 
 @app.route('/')
 def index():
     return render_template('form.html')
 
-@app.route('/next_page', methods=['POST'])
+@app.route('/next_page', methods=['GET', 'POST'])
 def next_page():
-    form_data = request.form.to_dict()
-    
-    # Retrieve the servicetype option from the form data
-    servicetype = form_data.get('servicetype')
-    
-    # Redirect based on servicetype selection
-    if servicetype == 'internet':
-        return redirect(url_for('internet'))
-    elif servicetype == 'voix':
-        return redirect(url_for('voix'))
+    if request.method == 'POST':
+        # Assuming 'customer' is part of your form data
+        customer = request.form.get('customer')
+        session['customer'] = customer  # Store customer in session
+        servicetype = request.form.get('servicetype')
+        
+        # Redirect based on servicetype selection
+        if servicetype == 'internet':
+            return redirect(url_for('internet'))
+        elif servicetype == 'voix':
+            return redirect(url_for('voix'))
+        else:
+            return redirect(url_for('index'))
     else:
         return redirect(url_for('index'))
 
@@ -30,13 +34,18 @@ def internet():
 def voix():
     return render_template('voix.html')
 
-
 @app.route('/submit_form', methods=['POST'])
 def submit_form():
+    # Retrieve customer from session
+    customer = session.get('customer')
+    if not customer:
+        return jsonify({'status': 'error', 'message': 'Customer information not found'})
+
     # Get form data
     vlan = request.form['vlan']
     wan = request.form['wan']
     gw = request.form['gw']
+    gw_mgmt = request.form['gw_mgmt']
     mgmt = request.form['mgmt']
     lan = request.form['lan']
     add_default_route = 'default-route' in request.form  # Checkbox handling
@@ -46,7 +55,7 @@ def submit_form():
     # Generate playbook content based on form inputs
     playbook_content = f"""---
 - name: Configure Internet Customer
-  hosts: your_hosts_group
+  hosts: {mgmt}
   vars:
     ansible_network_os: cisco.ios.ios
     ansible_become: true
@@ -157,7 +166,7 @@ def submit_form():
             routes:
               - dest: 0.0.0.0/0
                 next_hops:
-                  - forward_router_address: 10.43.81.216
+                  - forward_router_address: {gw}
                     name: default_route_service
 
   - name: Configure static route Supervision
@@ -168,7 +177,7 @@ def submit_form():
             routes:
               - dest: 10.55.55.64/26
                 next_hops:
-                  - forward_router_address: 10.251.122.129
+                  - forward_router_address: {gw_mgmt}
                     name: supervision_route
       state: merged
 
@@ -179,7 +188,7 @@ def submit_form():
         bgp:
           log_neighbor_changes: true
         neighbor:
-          - address: 10.43.81.216
+          - address: {gw}
             description: ISP neighbor
             remote_as: 65001
             route_map:
@@ -196,7 +205,7 @@ def submit_form():
               description: allow lans to be advertised to bgp neighber
               entries:
                 - action: permit
-                  prefix: 192.168.12.0/24
+                  prefix: {lan}
                   sequence: 5
       state: merged
 
@@ -259,13 +268,16 @@ def submit_form():
       when: {add_snmp}
     """
     
-    # Save playbook to a file
-    playbook_path = os.path.join(os.getcwd(), 'generated_playbook.yml')
+    # Define the path where the playbook should be saved
+    playbook_directory = '/home/azzikml'
+    playbook_filename = f"{customer}_{mgmt}.yml"
+    playbook_path = os.path.join(playbook_directory, playbook_filename)
+    
+    # Save playbook to the specified directory
     with open(playbook_path, 'w') as playbook_file:
         playbook_file.write(playbook_content)
-    
-    return jsonify({'status': 'success', 'message': f'Playbook generated and saved to {playbook_path}'})
 
+    return jsonify({'status': 'success', 'message': f'Playbook generated and saved to {playbook_path}'})
 
 if __name__ == '__main__':
     app.run(debug=True)

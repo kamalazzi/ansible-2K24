@@ -76,7 +76,15 @@
                         </div>
                         <div class="col-sm-6">
                             <label for="mgmt" class="form-label">Management IP address :</label>
-                            <input type="text" class="form-control" id="mgmt" name="mgmt" placeholder="192.168.0.1/24"
+                            <input type="text" class="form-control" id="mgmt" name="mgmt" placeholder="192.168.0.2/24"
+                                   required>
+                            <div class="invalid-feedback">
+                                Please enter management ip address.
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="gw_mgmt" class="form-label">Management IP address GW:</label>
+                            <input type="text" class="form-control" id="gw_mgmt" name="gw_mgmt" placeholder="192.168.0.1/24"
                                    required>
                             <div class="invalid-feedback">
                                 Please enter management ip address.
@@ -118,11 +126,17 @@
                             </div>
                             <div class="col-sm-16">
 				                <label for="BGP-AS-CLIENT">BGP AS Client:</label>
-                		        <input type="text" class="form-control toggle-input" id="BGP-AS-CLIENT" name="BGP-AS-CLIENT" disabled>
+                		        <input type="text" class="form-control toggle-input" id="BGP-AS-CLIENT" name="BGP-AS-CLIENT" disabled required>
+                                <div class="invalid-feedback">
+                                    Please enter BGP AS Clien.
+                                </div>
                             </div>
                             <div class="col-sm-16" style="padding-bottom: 2%;">
 				                <label for="BGP-AS-CLIENT">BGP AS ISP:</label>
-                		        <input type="text" class="form-control toggle-input" id="BGP-AS-CLIENT" name="BGP-AS-CLIENT" disabled>
+                		        <input type="text" class="form-control toggle-input" id="BGP-AS-CLIENT" name="BGP-AS-CLIENT" disabled required>
+                                <div class="invalid-feedback">
+                                    Please enter BGP AS ISP.
+                                </div>
                             </div>
                         </div>
                     <button class="w-100 btn btn-primary btn-md" type="submit">Generate YAML Internet customer</button>
@@ -132,6 +146,6 @@
         </div>
     </main>
 </div>
-<script src="/static/js/form-validation.js"></script>
+<script src="/static/main.js"></script>
 </body>
 </html>
