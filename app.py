@@ -38,6 +38,7 @@ def submit_form():
     wan = request.form['wan']
     gw = request.form['gw']
     mgmt = request.form['mgmt']
+    lan = request.form['lan']
     add_default_route = 'default-route' in request.form  # Checkbox handling
     add_aaa = 'aaa' in request.form  # Checkbox handling
     add_snmp = 'snmp' in request.form  # Checkbox handling
@@ -87,7 +88,7 @@ def submit_form():
         - snmp-server enable traps cpu threshold
         - snmp-server host 10.10.10.10 test
     when: snmp_output != snmp_config_present
-	when: {add_snmp}
+	  when: {add_snmp}
 
   - name: gather AAA configuration
     cisco.ios.ios_command:
@@ -110,7 +111,8 @@ def submit_form():
         - aaa accounting exec default start-stop group tacacs+
         - aaa accounting commands 15 default stop-only group tacacs+
         - aaa accounting system default start-stop group tacacs+
-
+    when: {add_aaa}
+    
   - name: Create subinterface FastEthernet0/1.{vlan}
     cisco.ios.ios_config:
       lines:
@@ -128,7 +130,7 @@ def submit_form():
       config:
         - name: FastEthernet0/1.{vlan}
           ipv4:
-            - address: 10.43.81.217/31
+            - address: {wan}
       state: merged
 
   - name: Configure FastEthernet0/1.882 - Supervision
@@ -136,7 +138,7 @@ def submit_form():
       config:
         - name: FastEthernet0/1.882
           ipv4:
-            - address: 10.251.122.130/26
+            - address: {mgmt}
       state: merged
 
   - name: Configure FastEthernet1/0 - LAN CLIENT
@@ -144,7 +146,7 @@ def submit_form():
       config:
         - name: FastEthernet1/0
           ipv4:
-            - address: 192.168.12.1/24
+            - address: {lan}
       state: merged
 
   - name: Configure static route service
