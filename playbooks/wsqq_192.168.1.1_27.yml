@@ -1,62 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, session
-import os
-
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Required for session usage
-
-@app.route('/')
-def index():
-    return render_template('form.html')
-
-@app.route('/next_page', methods=['GET', 'POST'])
-def next_page():
-    if request.method == 'POST':
-        # Assuming 'customer' is part of your form data
-        customer = request.form.get('customer')
-        session['customer'] = customer  # Store customer in session
-        servicetype = request.form.get('servicetype')
-        
-        # Redirect based on servicetype selection
-        if servicetype == 'internet':
-            return redirect(url_for('internet'))
-        elif servicetype == 'voix':
-            return redirect(url_for('voix'))
-        else:
-            return redirect(url_for('index'))
-    else:
-        return redirect(url_for('index'))
-
-@app.route('/internet')
-def internet():
-    return render_template('internet.html')
-
-@app.route('/voix')
-def voix():
-    return render_template('voix.html')
-
-@app.route('/submit_form', methods=['POST'])
-def submit_form():
-    # Retrieve customer from session
-    customer = session.get('customer')
-    if not customer:
-        return jsonify({'status': 'error', 'message': 'Customer information not found'})
-
-    # Get form data
-    vlan = request.form['vlan']
-    wan = request.form['wan']
-    gw = request.form['gw']
-    gw_mgmt = request.form['gw_mgmt']
-    mgmt = request.form['mgmt']
-    lan = request.form['lan']
-    add_default_route = 'default-route' in request.form  # Checkbox handling
-    add_aaa = 'aaa' in request.form  # Checkbox handling
-    add_snmp = 'snmp' in request.form  # Checkbox handling
-    add_bgp = 'bgp' in request.form  # Checkbox handling
-    
-    # Generate playbook content based on form inputs
-    playbook_content = f"""---
+---
 - name: Configure Internet Customer
-  hosts: {mgmt}
+  hosts: 192.168.1.1/27
   vars:
     ansible_network_os: cisco.ios.ios
     ansible_become: true
@@ -88,7 +32,7 @@ def submit_form():
     register: snmp_output
   - name: check
     set_fact:
-      snmp_config_present: "{{ 'snmp' in snmp_output.stdout[0] }}"
+      snmp_config_present: "{ 'snmp' in snmp_output.stdout[0] }"
 
   - name: add snmp configuration
     cisco.ios.ios_config:
@@ -98,7 +42,7 @@ def submit_form():
         - snmp-server enable traps cpu threshold
         - snmp-server host 10.10.10.10 test
     when: snmp_output != snmp_config_present
-	  when: {add_snmp}
+	  when: False
 
   - name: gather AAA configuration
     cisco.ios.ios_command:
@@ -107,7 +51,7 @@ def submit_form():
     register: aaa_output
   - name: check AAA
     set_fact:
-      aaa_config_present: "{{ 'aaa new-model' in aaa_output.stdout[0] }}"
+      aaa_config_present: "{ 'aaa new-model' in aaa_output.stdout[0] }"
 
   - name: add AAA
     cisco.ios.ios_config:
@@ -121,13 +65,13 @@ def submit_form():
         - aaa accounting exec default start-stop group tacacs+
         - aaa accounting commands 15 default stop-only group tacacs+
         - aaa accounting system default start-stop group tacacs+
-    when: {add_aaa}
+    when: False
     
-  - name: Create subinterface FastEthernet0/1.{vlan}
+  - name: Create subinterface FastEthernet0/1.1000
     cisco.ios.ios_config:
       lines:
-        - encapsulation dot1Q {vlan}
-      parents: interface FastEthernet0/1.{vlan}
+        - encapsulation dot1Q 1000
+      parents: interface FastEthernet0/1.1000
 
   - name: Create subinterface FastEthernet0/1.882
     cisco.ios.ios_config:
@@ -135,12 +79,12 @@ def submit_form():
         - encapsulation dot1Q 882
       parents: interface FastEthernet0/1.882
 
-  - name: Configure FastEthernet0/1.{vlan} - Service
+  - name: Configure FastEthernet0/1.1000 - Service
     cisco.ios.ios_l3_interfaces:
       config:
-        - name: FastEthernet0/1.{vlan}
+        - name: FastEthernet0/1.1000
           ipv4:
-            - address: {wan}
+            - address: 20.20.20.20/31
       state: merged
 
   - name: Configure FastEthernet0/1.882 - Supervision
@@ -148,7 +92,7 @@ def submit_form():
       config:
         - name: FastEthernet0/1.882
           ipv4:
-            - address: {mgmt}
+            - address: 192.168.1.1/27
       state: merged
 
   - name: Configure FastEthernet1/0 - LAN CLIENT
@@ -156,7 +100,7 @@ def submit_form():
       config:
         - name: FastEthernet1/0
           ipv4:
-            - address: {lan}
+            - address: 4.4.4.0/30
       state: merged
 
   - name: Configure static route service
@@ -167,7 +111,7 @@ def submit_form():
             routes:
               - dest: 0.0.0.0/0
                 next_hops:
-                  - forward_router_address: {gw}
+                  - forward_router_address: 20.20.20.19
                     name: default_route_service
     when: add_default_route
 
@@ -179,7 +123,7 @@ def submit_form():
             routes:
               - dest: 10.55.55.64/26
                 next_hops:
-                  - forward_router_address: {gw_mgmt}
+                  - forward_router_address: 192.167.1.2
                     name: supervision_route
       state: merged
 
@@ -190,7 +134,7 @@ def submit_form():
         bgp:
           log_neighbor_changes: true
         neighbor:
-          - address: {gw}
+          - address: 20.20.20.19
             description: ISP neighbor
             remote_as: 65001
             route_map:
@@ -208,7 +152,7 @@ def submit_form():
               description: allow lans to be advertised to bgp neighber
               entries:
                 - action: permit
-                  prefix: {lan}
+                  prefix: 4.4.4.0/30
                   sequence: 5
       state: merged
     when: add_bgp
@@ -235,20 +179,40 @@ def submit_form():
   - name: save configuration
     cisco.ios.ios_config:
       save_when: modified
-    """
-    # Sanitize inputs to remove slashes
-    safe_mgmt = mgmt.replace("/", "_")
+	
+  - name: Configure VLAN 1000
+      vlan:
+        vlan_id: 1000
+        state: present
 
-    # Define the path where the playbook should be saved
-    playbook_directory = '/var/www/html/web/playbooks'
-    playbook_filename = f"{customer}_{safe_mgmt}.yml"
-    playbook_path = os.path.join(playbook_directory, playbook_filename)
+    - name: Configure WAN Interface
+      ip_interface:
+        interface: WAN
+        ip: 20.20.20.20/31/31
+        state: present
+
+    - name: Configure Gateway
+      ip_route:
+        network: 0.0.0.0/0
+        gateway: 20.20.20.19
+        state: present
+      when: True
+
+    - name: Configure Management Interface
+      ip_interface:
+        interface: Management
+        ip: 192.168.1.1/27
+        state: present
+
+    - name: Configure AAA
+      # Add your AAA configuration task here
+      # Example: aaa_configuration_task:
+      #   option: value
+      when: False
+
+    - name: Configure SNMP
+      # Add your SNMP configuration task here
+      # Example: snmp_configuration_task:
+      #   option: value
+      when: False
     
-    # Save playbook to the specified directory
-    with open(playbook_path, 'w') as playbook_file:
-        playbook_file.write(playbook_content)
-
-    return jsonify({'status': 'success', 'message': f'Playbook generated and saved to {playbook_path}'})
-
-if __name__ == '__main__':
-    app.run(debug=True)
