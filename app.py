@@ -169,7 +169,7 @@ def submit_form():
                 next_hops:
                   - forward_router_address: {gw}
                     name: default_route_service
-    when: add_default_route
+    when: {add_default_route}
 
   - name: Configure static route Supervision
     cisco.ios.ios_static_routes:
@@ -197,7 +197,7 @@ def submit_form():
               name: Advertised_routes
               out: true
       state: merged
-    when: add_bgp
+    when: {add_bgp}
 
   - name: Prefix lists configuration
     cisco.ios.ios_prefix_lists:
@@ -211,7 +211,7 @@ def submit_form():
                   prefix: {lan}
                   sequence: 5
       state: merged
-    when: add_bgp
+    when: {add_bgp}
 
   - name: Route maps configuration
     cisco.ios.ios_route_maps:
@@ -230,7 +230,7 @@ def submit_form():
               action: deny
               description: Advertised_routes
       state: merged
-    when: add_bgp
+    when: {add_bgp}
 
   - name: save configuration
     cisco.ios.ios_config:
