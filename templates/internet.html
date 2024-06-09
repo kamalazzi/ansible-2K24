@@ -28,7 +28,81 @@
             document.getElementById('BGP').addEventListener('change', toggleTextInput);
         });
     </script>
-
+        <script>
+            function validateCIDR(input) {
+                const cidrPattern = /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/;
+                const cidrValue = input.value;
+    
+                if (!cidrPattern.test(cidrValue)) {
+                    alert("Invalid CIDR format. Please enter a value like 8.4.0.0/30");
+                    return false;
+                }
+    
+                const [ip, mask] = cidrValue.split('/');
+                const ipParts = ip.split('.').map(Number);
+                const maskValue = Number(mask);
+    
+                if (ipParts.some(part => part < 0 || part > 255)) {
+                    alert("Invalid IP address. Each octet must be between 0 and 255.");
+                    return false;
+                }
+    
+                if (maskValue < 0 || maskValue > 32) {
+                    alert("Invalid subnet mask. It must be between 0 and 32.");
+                    return false;
+                }
+    
+                return true;
+            }
+    
+            function validateIP(input) {
+                const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+                const ipValue = input.value;
+    
+                if (!ipPattern.test(ipValue)) {
+                    alert("Invalid IP format. Please enter a value like 192.168.0.1");
+                    return false;
+                }
+    
+                const ipParts = ipValue.split('.').map(Number);
+    
+                if (ipParts.some(part => part < 0 || part > 255)) {
+                    alert("Invalid IP address. Each octet must be between 0 and 255.");
+                    return false;
+                }
+    
+                return true;
+            }
+    
+            function validateVLAN(input) {
+                const vlanPattern = /^\d{1,4}$/;
+                const vlanValue = Number(input.value);
+    
+                if (!vlanPattern.test(input.value) || vlanValue < 1 || vlanValue > 4094) {
+                    alert("Invalid VLAN ID. It must be a number between 1 and 4094.");
+                    return false;
+                }
+    
+                return true;
+            }
+    
+            document.addEventListener('DOMContentLoaded', () => {
+                const form = document.getElementById('networkForm');
+                form.addEventListener('submit', (event) => {
+                    const vlanInput = document.getElementById('vlan');
+                    const wanInput = document.getElementById('wan');
+                    const gwInput = document.getElementById('gw');
+                    const mgmtInput = document.getElementById('mgmt');
+                    const gwMgmtInput = document.getElementById('gw_mgmt');
+                    const lanInput = document.getElementById('lan');
+    
+                    if (!validateVLAN(vlanInput) || !validateCIDR(wanInput) || !validateIP(gwInput) ||
+                        !validateCIDR(mgmtInput) || !validateIP(gwMgmtInput) || !validateCIDR(lanInput)) {
+                        event.preventDefault();
+                    }
+                });
+            });
+        </script>
 </head>
 <body>
 <header>
@@ -54,50 +128,51 @@
                         <h4 class="mb-3" style="font-weight: bold;">TECHNICAL INTERNET INFORMATIONS : </h4>
                         <div class="col-sm-6">
                             <label for="vlan" class="form-label">Vlan ID :</label>
-                            <input type="text" class="form-control" id="vlan" name="vlan" placeholder="1100" required>
+                            <input type="text" class="form-control" id="vlan" name="vlan" placeholder="1100" pattern="\d{1,4}" required>
                             <div class="invalid-feedback">
-                                Please enter vlan id.
+                                Please enter a valid VLAN ID (1-4094).
                             </div>
                         </div>
                         <div class="col-sm-6">
                             <label for="wan" class="form-label">WAN IP address :</label>
                             <input type="text" class="form-control" id="wan" name="wan" placeholder="10.10.10.2/31"
-                                   required>
+                                   pattern="^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$" required>
                             <div class="invalid-feedback">
-                                Please enter WAN ip address.
+                                Please enter a valid WAN IP address.
                             </div>
                         </div>
                         <div class="col-sm-6">
                             <label for="gw" class="form-label">GW IP address :</label>
-                            <input type="text" class="form-control" id="gw" name="gw" placeholder="10.10.10.1" required>
+                            <input type="text" class="form-control" id="gw" name="gw" placeholder="10.10.10.1"
+                                   pattern="^(\d{1,3}\.){3}\d{1,3}$" required>
                             <div class="invalid-feedback">
-                                Please enter GW ip address.
+                                Please enter a valid GW IP address.
                             </div>
                         </div>
                         <div class="col-sm-6">
                             <label for="mgmt" class="form-label">Management IP address :</label>
                             <input type="text" class="form-control" id="mgmt" name="mgmt" placeholder="192.168.0.2/24"
-                                   required>
+                                   pattern="^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$" required>
                             <div class="invalid-feedback">
-                                Please enter management ip address.
+                                Please enter a valid management IP address.
                             </div>
                         </div>
                         <div class="col-sm-6">
                             <label for="gw_mgmt" class="form-label">Management IP address GW:</label>
-                            <input type="text" class="form-control" id="gw_mgmt" name="gw_mgmt" placeholder="192.168.0.1/24"
-                                   required>
+                            <input type="text" class="form-control" id="gw_mgmt" name="gw_mgmt" placeholder="192.168.0.1"
+                                   pattern="^(\d{1,3}\.){3}\d{1,3}$" required>
                             <div class="invalid-feedback">
-                                Please enter management ip address.
+                                Please enter a valid management GW IP address.
                             </div>
-                        </div>
-                        <div class="col-sm-16">
+                        </div>                        
+                        <div class="col-sm-6">
                             <label for="lan" class="form-label">LAN :</label>
                             <input type="text" class="form-control" id="lan" name="lan" placeholder="8.4.0.0/30"
-                                   required>
+                                   pattern="^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$" required>
                             <div class="invalid-feedback">
-                                Please enter Public LAN.
+                                Please enter a valid LAN.
                             </div>
-                        </div>
+                        </div>                        
                         <h4 class="mb-4" style="font-weight: bold;padding-top: 2%;">SNMP and AAA : </h4>
                         <div class="col-sm-6">
                             <div class="form-check">

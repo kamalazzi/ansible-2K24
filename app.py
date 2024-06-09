@@ -51,6 +51,7 @@ def submit_form():
     add_default_route = 'default-route' in request.form  # Checkbox handling
     add_aaa = 'aaa' in request.form  # Checkbox handling
     add_snmp = 'snmp' in request.form  # Checkbox handling
+    add_bgp = 'bgp' in request.form  # Checkbox handling
     
     # Generate playbook content based on form inputs
     playbook_content = f"""---
@@ -168,6 +169,7 @@ def submit_form():
                 next_hops:
                   - forward_router_address: {gw}
                     name: default_route_service
+    when: add_default_route
 
   - name: Configure static route Supervision
     cisco.ios.ios_static_routes:
@@ -195,6 +197,7 @@ def submit_form():
               name: Advertised_routes
               out: true
       state: merged
+    when: add_bgp
 
   - name: Prefix lists configuration
     cisco.ios.ios_prefix_lists:
@@ -208,6 +211,7 @@ def submit_form():
                   prefix: {lan}
                   sequence: 5
       state: merged
+    when: add_bgp
 
   - name: Route maps configuration
     cisco.ios.ios_route_maps:
@@ -226,6 +230,7 @@ def submit_form():
               action: deny
               description: Advertised_routes
       state: merged
+    when: add_bgp
 
   - name: save configuration
     cisco.ios.ios_config:
@@ -239,7 +244,7 @@ def submit_form():
     - name: Configure WAN Interface
       ip_interface:
         interface: WAN
-        ip: {wan}
+        ip: {wan}/31
         state: present
 
     - name: Configure Gateway
@@ -267,10 +272,12 @@ def submit_form():
       #   option: value
       when: {add_snmp}
     """
-    
+    # Sanitize inputs to remove slashes
+    safe_mgmt = mgmt.replace("/", "_")
+
     # Define the path where the playbook should be saved
-    playbook_directory = '/home/azzikml'
-    playbook_filename = f"{customer}_{mgmt}.yml"
+    playbook_directory = '/var/www/html/web/playbooks'
+    playbook_filename = f"{customer}_{safe_mgmt}.yml"
     playbook_path = os.path.join(playbook_directory, playbook_filename)
     
     # Save playbook to the specified directory

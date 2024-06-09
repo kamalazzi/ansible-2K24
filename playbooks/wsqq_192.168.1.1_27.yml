@@ -1,6 +1,6 @@
 ---
 - name: Configure Internet Customer
-  hosts: your_hosts_group
+  hosts: 192.168.1.1/27
   vars:
     ansible_network_os: cisco.ios.ios
     ansible_become: true
@@ -67,11 +67,11 @@
         - aaa accounting system default start-stop group tacacs+
     when: False
     
-  - name: Create subinterface FastEthernet0/1.
+  - name: Create subinterface FastEthernet0/1.1000
     cisco.ios.ios_config:
       lines:
-        - encapsulation dot1Q 
-      parents: interface FastEthernet0/1.
+        - encapsulation dot1Q 1000
+      parents: interface FastEthernet0/1.1000
 
   - name: Create subinterface FastEthernet0/1.882
     cisco.ios.ios_config:
@@ -79,12 +79,12 @@
         - encapsulation dot1Q 882
       parents: interface FastEthernet0/1.882
 
-  - name: Configure FastEthernet0/1. - Service
+  - name: Configure FastEthernet0/1.1000 - Service
     cisco.ios.ios_l3_interfaces:
       config:
-        - name: FastEthernet0/1.
+        - name: FastEthernet0/1.1000
           ipv4:
-            - address: 
+            - address: 20.20.20.20/31
       state: merged
 
   - name: Configure FastEthernet0/1.882 - Supervision
@@ -92,7 +92,7 @@
       config:
         - name: FastEthernet0/1.882
           ipv4:
-            - address: 
+            - address: 192.168.1.1/27
       state: merged
 
   - name: Configure FastEthernet1/0 - LAN CLIENT
@@ -100,7 +100,7 @@
       config:
         - name: FastEthernet1/0
           ipv4:
-            - address: 
+            - address: 4.4.4.0/30
       state: merged
 
   - name: Configure static route service
@@ -111,7 +111,7 @@
             routes:
               - dest: 0.0.0.0/0
                 next_hops:
-                  - forward_router_address: 10.43.81.216
+                  - forward_router_address: 20.20.20.19
                     name: default_route_service
 
   - name: Configure static route Supervision
@@ -122,7 +122,7 @@
             routes:
               - dest: 10.55.55.64/26
                 next_hops:
-                  - forward_router_address: 10.251.122.129
+                  - forward_router_address: 192.167.1.2
                     name: supervision_route
       state: merged
 
@@ -133,7 +133,7 @@
         bgp:
           log_neighbor_changes: true
         neighbor:
-          - address: 10.43.81.216
+          - address: 20.20.20.19
             description: ISP neighbor
             remote_as: 65001
             route_map:
@@ -150,7 +150,7 @@
               description: allow lans to be advertised to bgp neighber
               entries:
                 - action: permit
-                  prefix: 192.168.12.0/24
+                  prefix: 4.4.4.0/30
                   sequence: 5
       state: merged
 
@@ -176,28 +176,28 @@
     cisco.ios.ios_config:
       save_when: modified
 	
-  - name: Configure VLAN 
+  - name: Configure VLAN 1000
       vlan:
-        vlan_id: 
+        vlan_id: 1000
         state: present
 
     - name: Configure WAN Interface
       ip_interface:
         interface: WAN
-        ip: 
+        ip: 20.20.20.20/31/31
         state: present
 
     - name: Configure Gateway
       ip_route:
         network: 0.0.0.0/0
-        gateway: 
+        gateway: 20.20.20.19
         state: present
-      when: False
+      when: True
 
     - name: Configure Management Interface
       ip_interface:
         interface: Management
-        ip: 
+        ip: 192.168.1.1/27
         state: present
 
     - name: Configure AAA
