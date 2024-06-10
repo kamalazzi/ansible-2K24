@@ -263,7 +263,7 @@ def submit_form():
     # Save playbook to the specified directory
     with open(playbook_path, 'w') as playbook_file:
         playbook_file.write(playbook_content)
-
+    return jsonify({'status': 'success', 'message': f'Playbook generated and saved to {playbook_path}'})
     # Define the path where the inventory should be saved
     inventory_directory = '/var/www/html/web/inventory'
     inventory_filename = f"inventory_{customer}_{safe_mgmt}.yml"
@@ -273,7 +273,7 @@ def submit_form():
 {inv_safe_mgmt}
      """
     inventory_path = os.path.join(inventory_directory, inventory_filename)
-    
+
     # Save playbook to the specified directory
     with open(inventory_path, 'w') as inventory_file:
         inventory_file.write(inventory_content)
