@@ -9,11 +9,11 @@ def index():
     return render_template('form.html')
 
 @app.route('/customer')
-def internet():
+def customer():
     return render_template('customer.html')
 
 @app.route('/isp')
-def voix():
+def isp():
     return render_template('isp.html')
 
 @app.route('/next_page', methods=['GET', 'POST'])
