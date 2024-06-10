@@ -8,14 +8,6 @@ app.secret_key = 'your_secret_key'  # Required for session usage
 def index():
     return render_template('form.html')
 
-@app.route('/customer')
-def internet():
-    return render_template('customer.html')
-
-@app.route('/isp')
-def voix():
-    return render_template('isp.html')
-
 @app.route('/next_page', methods=['GET', 'POST'])
 def next_page():
     if request.method == 'POST':
