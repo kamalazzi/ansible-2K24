@@ -1,6 +1,6 @@
 ---
 - name: Configure Internet Customer
-  hosts: 192.168.1.1/27
+  hosts: 192.167.1.1/27
   vars:
     ansible_network_os: cisco.ios.ios
     ansible_become: true
@@ -67,11 +67,11 @@
         - aaa accounting system default start-stop group tacacs+
     when: False
     
-  - name: Create subinterface FastEthernet0/1.1000
+  - name: Create subinterface FastEthernet0/1.4000
     cisco.ios.ios_config:
       lines:
-        - encapsulation dot1Q 1000
-      parents: interface FastEthernet0/1.1000
+        - encapsulation dot1Q 4000
+      parents: interface FastEthernet0/1.4000
 
   - name: Create subinterface FastEthernet0/1.882
     cisco.ios.ios_config:
@@ -79,12 +79,12 @@
         - encapsulation dot1Q 882
       parents: interface FastEthernet0/1.882
 
-  - name: Configure FastEthernet0/1.1000 - Service
+  - name: Configure FastEthernet0/1.4000 - Service
     cisco.ios.ios_l3_interfaces:
       config:
-        - name: FastEthernet0/1.1000
+        - name: FastEthernet0/1.4000
           ipv4:
-            - address: 20.20.20.20/31
+            - address: 10.10.10.1/31
       state: merged
 
   - name: Configure FastEthernet0/1.882 - Supervision
@@ -92,7 +92,7 @@
       config:
         - name: FastEthernet0/1.882
           ipv4:
-            - address: 192.168.1.1/27
+            - address: 192.167.1.1/27
       state: merged
 
   - name: Configure FastEthernet1/0 - LAN CLIENT
@@ -100,7 +100,7 @@
       config:
         - name: FastEthernet1/0
           ipv4:
-            - address: 4.4.4.0/30
+            - address: 8.8.4.0/30
       state: merged
 
   - name: Configure static route service
@@ -111,9 +111,9 @@
             routes:
               - dest: 0.0.0.0/0
                 next_hops:
-                  - forward_router_address: 20.20.20.19
+                  - forward_router_address: 10.10.10.2
                     name: default_route_service
-    when: add_default_route
+    when: False
 
   - name: Configure static route Supervision
     cisco.ios.ios_static_routes:
@@ -123,7 +123,7 @@
             routes:
               - dest: 10.55.55.64/26
                 next_hops:
-                  - forward_router_address: 192.167.1.2
+                  - forward_router_address: 192.168.1.2
                     name: supervision_route
       state: merged
 
@@ -134,14 +134,14 @@
         bgp:
           log_neighbor_changes: true
         neighbor:
-          - address: 20.20.20.19
+          - address: 10.10.10.2
             description: ISP neighbor
             remote_as: 65001
             route_map:
               name: Advertised_routes
               out: true
       state: merged
-    when: add_bgp
+    when: False
 
   - name: Prefix lists configuration
     cisco.ios.ios_prefix_lists:
@@ -152,10 +152,10 @@
               description: allow lans to be advertised to bgp neighber
               entries:
                 - action: permit
-                  prefix: 4.4.4.0/30
+                  prefix: 8.8.4.0/30
                   sequence: 5
       state: merged
-    when: add_bgp
+    when: False
 
   - name: Route maps configuration
     cisco.ios.ios_route_maps:
@@ -174,45 +174,9 @@
               action: deny
               description: Advertised_routes
       state: merged
-    when: add_bgp
+    when: False
 
   - name: save configuration
     cisco.ios.ios_config:
       save_when: modified
-	
-  - name: Configure VLAN 1000
-      vlan:
-        vlan_id: 1000
-        state: present
-
-    - name: Configure WAN Interface
-      ip_interface:
-        interface: WAN
-        ip: 20.20.20.20/31/31
-        state: present
-
-    - name: Configure Gateway
-      ip_route:
-        network: 0.0.0.0/0
-        gateway: 20.20.20.19
-        state: present
-      when: True
-
-    - name: Configure Management Interface
-      ip_interface:
-        interface: Management
-        ip: 192.168.1.1/27
-        state: present
-
-    - name: Configure AAA
-      # Add your AAA configuration task here
-      # Example: aaa_configuration_task:
-      #   option: value
-      when: False
-
-    - name: Configure SNMP
-      # Add your SNMP configuration task here
-      # Example: snmp_configuration_task:
-      #   option: value
-      when: False
     

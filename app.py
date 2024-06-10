@@ -8,6 +8,14 @@ app.secret_key = 'your_secret_key'  # Required for session usage
 def index():
     return render_template('form.html')
 
+@app.route('/customer')
+def internet():
+    return render_template('customer.html')
+
+@app.route('/isp')
+def voix():
+    return render_template('isp.html')
+
 @app.route('/next_page', methods=['GET', 'POST'])
 def next_page():
     if request.method == 'POST':
@@ -49,9 +57,9 @@ def submit_form():
     mgmt = request.form['mgmt']
     lan = request.form['lan']
     add_default_route = 'default-route' in request.form  # Checkbox handling
-    add_aaa = 'aaa' in request.form  # Checkbox handling
-    add_snmp = 'snmp' in request.form  # Checkbox handling
-    add_bgp = 'bgp' in request.form  # Checkbox handling
+    add_aaa = 'AAA' in request.form  # Checkbox handling
+    add_snmp = 'SNMP' in request.form  # Checkbox handling
+    add_bgp = 'BGP' in request.form  # Checkbox handling
     
     # Generate playbook content based on form inputs
     playbook_content = f"""---
