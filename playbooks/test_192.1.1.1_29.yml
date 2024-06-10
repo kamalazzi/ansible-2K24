@@ -1,6 +1,6 @@
 ---
 - name: Configure Internet Customer
-  hosts: 192.167.1.1/27
+  hosts: customer_test
   vars:
     ansible_network_os: cisco.ios.ios
     ansible_become: true
@@ -42,7 +42,7 @@
         - snmp-server enable traps cpu threshold
         - snmp-server host 10.10.10.10 test
     when: snmp_output != snmp_config_present
-	  when: False
+          when: True
 
   - name: gather AAA configuration
     cisco.ios.ios_command:
@@ -65,13 +65,13 @@
         - aaa accounting exec default start-stop group tacacs+
         - aaa accounting commands 15 default stop-only group tacacs+
         - aaa accounting system default start-stop group tacacs+
-    when: False
+    when: True
     
-  - name: Create subinterface FastEthernet0/1.4000
+  - name: Create subinterface FastEthernet0/1.5000
     cisco.ios.ios_config:
       lines:
-        - encapsulation dot1Q 4000
-      parents: interface FastEthernet0/1.4000
+        - encapsulation dot1Q 5000
+      parents: interface FastEthernet0/1.5000
 
   - name: Create subinterface FastEthernet0/1.882
     cisco.ios.ios_config:
@@ -79,10 +79,10 @@
         - encapsulation dot1Q 882
       parents: interface FastEthernet0/1.882
 
-  - name: Configure FastEthernet0/1.4000 - Service
+  - name: Configure FastEthernet0/1.5000 - Service
     cisco.ios.ios_l3_interfaces:
       config:
-        - name: FastEthernet0/1.4000
+        - name: FastEthernet0/1.5000
           ipv4:
             - address: 10.10.10.1/31
       state: merged
@@ -92,7 +92,7 @@
       config:
         - name: FastEthernet0/1.882
           ipv4:
-            - address: 192.167.1.1/27
+            - address: 192.1.1.1/29
       state: merged
 
   - name: Configure FastEthernet1/0 - LAN CLIENT
@@ -100,7 +100,7 @@
       config:
         - name: FastEthernet1/0
           ipv4:
-            - address: 8.8.4.0/30
+            - address: 3.4.4.1/30
       state: merged
 
   - name: Configure static route service
@@ -111,9 +111,9 @@
             routes:
               - dest: 0.0.0.0/0
                 next_hops:
-                  - forward_router_address: 10.10.10.2
+                  - forward_router_address: 10.10.10.10
                     name: default_route_service
-    when: False
+    when: True
 
   - name: Configure static route Supervision
     cisco.ios.ios_static_routes:
@@ -123,7 +123,7 @@
             routes:
               - dest: 10.55.55.64/26
                 next_hops:
-                  - forward_router_address: 192.168.1.2
+                  - forward_router_address: 192.167.1.2
                     name: supervision_route
       state: merged
 
@@ -134,7 +134,7 @@
         bgp:
           log_neighbor_changes: true
         neighbor:
-          - address: 10.10.10.2
+          - address: 10.10.10.10
             description: ISP neighbor
             remote_as: 65001
             route_map:
@@ -152,7 +152,7 @@
               description: allow lans to be advertised to bgp neighber
               entries:
                 - action: permit
-                  prefix: 8.8.4.0/30
+                  prefix: 3.4.4.0/30
                   sequence: 5
       state: merged
     when: False
