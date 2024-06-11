@@ -65,7 +65,7 @@ def submit_form_internet():
     try:
         lan_network = ipaddress.ip_network(lan, strict=False)
         lan_ip = list(lan_network.hosts())[0]  # Get the second host address in the subnet
-        incremented_ip = int(lan_ip) + 1
+        incremented_ip = int(lan_ip)
         incremented_lan = f"{ipaddress.ip_address(incremented_ip)}/{lan_network.prefixlen}"
     except ValueError as e:
         return jsonify({'status': 'error', 'message': str(e)})
