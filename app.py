@@ -64,7 +64,7 @@ def submit_form():
     try:
         lan_network = ipaddress.ip_network(lan, strict=False)
         lan_ip = list(lan_network.hosts())[0]  # Get the second host address in the subnet
-        incremented_ip = int(lan_ip) + 1
+        incremented_ip = int(lan_ip)
         incremented_lan = f"{ipaddress.ip_address(incremented_ip)}/{lan_network.prefixlen}"
     except ValueError as e:
         return jsonify({'status': 'error', 'message': str(e)})
@@ -102,10 +102,11 @@ def submit_form():
       commands:
          - show running-config | include snmp
     register: snmp_output
-  - name: check
+    when: {add_snmp}
+  - name: check SNMP configuration
     set_fact:
       snmp_config_present: "{{ 'snmp' in snmp_output.stdout[0] }}"
-
+    when: {add_snmp}
   - name: add snmp configuration
     cisco.ios.ios_config:
       lines:
@@ -113,8 +114,7 @@ def submit_form():
         - snmp-server community Ansible_rw rw
         - snmp-server enable traps cpu threshold
         - snmp-server host 10.10.10.10 test
-    when: snmp_output != snmp_config_present
-          when: {add_snmp}
+    when: {add_snmp} and snmp_output != snmp_config_present
 
   - name: gather AAA configuration
     cisco.ios.ios_command:
