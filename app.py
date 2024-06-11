@@ -1,13 +1,25 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 import os
+import ipaddress
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Required for session usage
+app.secret_key = 'automation'  # Required for session usage
 
 @app.route('/')
 def index():
     return render_template('form.html')
 
+<<<<<<< HEAD
+=======
+@app.route('/customer')
+def customer():
+    return render_template('customer.html')
+
+@app.route('/isp')
+def isp():
+    return render_template('isp.html')
+
+>>>>>>> c882309cf2de60e9aa1953e54fa296b97e156b94
 @app.route('/next_page', methods=['GET', 'POST'])
 def next_page():
     if request.method == 'POST':
@@ -53,10 +65,18 @@ def submit_form():
     add_snmp = 'SNMP' in request.form  # Checkbox handling
     add_bgp = 'BGP' in request.form  # Checkbox handling
     
+    try:
+        lan_network = ipaddress.ip_network(lan, strict=False)
+        lan_ip = list(lan_network.hosts())[0]  # Get the second host address in the subnet
+        incremented_ip = int(lan_ip)
+        incremented_lan = f"{ipaddress.ip_address(incremented_ip)}/{lan_network.prefixlen}"
+    except ValueError as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+    
     # Generate playbook content based on form inputs
     playbook_content = f"""---
 - name: Configure Internet Customer
-  hosts: {mgmt}
+  hosts: customer_{customer}
   vars:
     ansible_network_os: cisco.ios.ios
     ansible_become: true
@@ -98,7 +118,7 @@ def submit_form():
         - snmp-server enable traps cpu threshold
         - snmp-server host 10.10.10.10 test
     when: snmp_output != snmp_config_present
-	  when: {add_snmp}
+    when: {add_snmp}
 
   - name: gather AAA configuration
     cisco.ios.ios_command:
@@ -156,7 +176,7 @@ def submit_form():
       config:
         - name: FastEthernet1/0
           ipv4:
-            - address: {lan}
+            - address: {incremented_lan}
       state: merged
 
   - name: Configure static route service
@@ -240,15 +260,31 @@ def submit_form():
     safe_mgmt = mgmt.replace("/", "_")
 
     # Define the path where the playbook should be saved
-    playbook_directory = '/var/www/html/web/playbooks'
+    working_directory = os.getcwd()
+    playbook_directory = os.path.join(working_directory, 'playbooks')
     playbook_filename = f"{customer}_{safe_mgmt}.yml"
     playbook_path = os.path.join(playbook_directory, playbook_filename)
-    
+
     # Save playbook to the specified directory
     with open(playbook_path, 'w') as playbook_file:
         playbook_file.write(playbook_content)
 
-    return jsonify({'status': 'success', 'message': f'Playbook generated and saved to {playbook_path}'})
+    # Define the path where the inventory should be saved
+    working_directory = os.getcwd()
+    inventory_directory = os.path.join(working_directory, 'inventory')
+    inventory_filename = f"inventory_{customer}_{safe_mgmt}.yml"
+
+    # Sanitize inputs to remove slashes
+    inv_safe_mgmt = mgmt.split("/")[0]
+    inventory_content = f"""[customer_{customer}]
+{inv_safe_mgmt}
+     """
+    inventory_path = os.path.join(inventory_directory, inventory_filename)
+
+    # Save playbook to the specified directory
+    with open(inventory_path, 'w') as inventory_file:
+        inventory_file.write(inventory_content)
+    return jsonify({'status': 'success', 'message': f'inventory generated and saved to {inventory_path} and Playbook generated and saved to {playbook_path}'})
 
 if __name__ == '__main__':
     app.run(debug=True)
