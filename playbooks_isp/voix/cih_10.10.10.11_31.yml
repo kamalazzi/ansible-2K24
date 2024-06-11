@@ -1,0 +1,54 @@
+---
+- name: Configure Internet Customer
+  hosts: customer_cih
+  vars:
+    ansible_network_os: cisco.ios.ios
+    ansible_become: true
+    ansible_become_method: enable
+    ansible_become_password: semaphore
+    ansible_ssh_user: semaphore
+    ansible_ssh_password: semaphore
+    ansible_connection: ansible.netcommon.network_cli
+    ansible_network_cli_ssh_type: paramiko
+  tasks:
+  - name: Configure VRF
+    cisco.ios.ios_config:
+      lines:
+        - ip vrf voice
+        - rd 100:1
+      parents: vrf definition voice
+  
+  - name: Configure a vrf named management
+    cisco.ios.ios_vrf:
+      name: voice
+      description: voice vrf
+
+  - name: Activate and add description to the interfaces
+    cisco.ios.ios_interfaces:
+      config:
+        - name: FastEthernet0/0
+          description: Configured and managed by Ansible Network
+          enabled: true
+        - name: FastEthernet0/1
+          description: WAN interface
+          enabled: true
+      state: merged
+
+  - name: Create subinterface FastEthernet0/1.2221
+    cisco.ios.ios_config:
+      lines:
+        - encapsulation dot1Q 2221
+        - ip vrf forwarding voice
+      parents: interface FastEthernet0/1.2221
+
+  - name: Configure FastEthernet0/1.2221 - Service
+    cisco.ios.ios_l3_interfaces:
+      config:
+        - name: FastEthernet0/1.2221
+          ipv4:
+            - address: 10.10.10.11/31
+      state: merged
+
+  - name: save configuration
+    cisco.ios.ios_config:
+      save_when: modified

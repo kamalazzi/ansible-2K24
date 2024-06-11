@@ -17,6 +17,14 @@ def customer():
 def isp():
     return render_template('isp.html')
 
+@app.route('/internet_isp')
+def internet_isp():
+    return render_template('internet_isp.html')
+
+@app.route('/voix_isp')
+def voix_isp():
+    return render_template('voix_isp.html')
+
 @app.route('/next_page', methods=['GET', 'POST'])
 def next_page():
     if request.method == 'POST':
@@ -467,6 +475,106 @@ def submit_form_voix():
     # Save inventory to the specified directory
     with open(inventory_path, 'w') as inventory_file:
         inventory_file.write(inventory_content)
+
+    return jsonify({'status': 'success', 'message': f'Inventory generated and saved to {inventory_path} and Playbook generated and saved to {playbook_path}'})
+
+@app.route('/submit_form_voix_isp', methods=['POST'])
+def submit_form_voix_isp():
+    # Get form data
+    customer_voice_isp = request.form['customer_voice_isp']
+    vlan_voice_isp = request.form['vlan_voice_isp']
+    wan_voice_isp = request.form['wan_voice_isp']
+
+    # Generate playbook content based on servicetype
+    playbook_content_voix_isp = f"""---
+- name: Configure Internet Customer
+  hosts: customer_{customer_voice_isp}
+  vars:
+    ansible_network_os: cisco.ios.ios
+    ansible_become: true
+    ansible_become_method: enable
+    ansible_become_password: semaphore
+    ansible_ssh_user: semaphore
+    ansible_ssh_password: semaphore
+    ansible_connection: ansible.netcommon.network_cli
+    ansible_network_cli_ssh_type: paramiko
+  tasks:
+  - name: Configure VRF
+    cisco.ios.ios_config:
+      lines:
+        - ip vrf voice
+        - rd 100:1
+      parents: vrf definition voice
+  
+  - name: Configure a vrf named management
+    cisco.ios.ios_vrf:
+      name: voice
+      description: voice vrf
+
+  - name: Activate and add description to the interfaces
+    cisco.ios.ios_interfaces:
+      config:
+        - name: FastEthernet0/0
+          description: Configured and managed by Ansible Network
+          enabled: true
+        - name: FastEthernet0/1
+          description: WAN interface
+          enabled: true
+      state: merged
+
+  - name: Create subinterface FastEthernet0/1.{vlan_voice_isp}
+    cisco.ios.ios_config:
+      lines:
+        - encapsulation dot1Q {vlan_voice_isp}
+        - ip vrf forwarding voice
+      parents: interface FastEthernet0/1.{vlan_voice_isp}
+
+  - name: Configure FastEthernet0/1.{vlan_voice_isp} - Service
+    cisco.ios.ios_l3_interfaces:
+      config:
+        - name: FastEthernet0/1.{vlan_voice_isp}
+          ipv4:
+            - address: {wan_voice_isp}
+      state: merged
+
+  - name: save configuration
+    cisco.ios.ios_config:
+      save_when: modified
+"""
+
+    # Sanitize inputs to remove slashes
+    safe_wan_voice_isp = wan_voice_isp.replace("/", "_")
+
+ # Define the path where the playbook should be saved
+    working_directory = os.getcwd()
+    playbook_directory = os.path.join(working_directory, 'playbooks_isp', 'voix')
+    playbook_filename = f"{customer_voice_isp}_{safe_wan_voice_isp}.yml"
+    playbook_path = os.path.join(playbook_directory, playbook_filename)
+
+    # Ensure the playbook directory exists
+    os.makedirs(playbook_directory, exist_ok=True)
+
+    # Save playbook to the specified directory
+    with open(playbook_path, 'w') as playbook_file:
+        playbook_file.write(playbook_content_voix_isp)
+
+    # Define the path where the inventory should be saved
+    inventory_directory = os.path.join(working_directory, 'inventory_isp', 'voix')
+    inventory_filename = f"inventory_{customer_voice_isp}_{safe_wan_voice_isp}.yml"
+    inventory_path = os.path.join(inventory_directory, inventory_filename)
+
+    # Ensure the inventory directory exists
+    os.makedirs(inventory_directory, exist_ok=True)
+
+    # Sanitize inputs to remove slashes
+    inv_safe_wan_voice_isp = safe_wan_voice_isp.split("/")[0]
+    inventory_content_isp = f"""[customer_voice_isp_{customer_voice_isp}]
+{inv_safe_wan_voice_isp}
+    """
+
+    # Save inventory to the specified directory
+    with open(inventory_path, 'w') as inventory_file:
+        inventory_file.write(inventory_content_isp)
 
     return jsonify({'status': 'success', 'message': f'Inventory generated and saved to {inventory_path} and Playbook generated and saved to {playbook_path}'})
 

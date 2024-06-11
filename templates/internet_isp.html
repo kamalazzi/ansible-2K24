@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automation Project</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleTextInput() {
+            const defaultRouteCheckbox = document.getElementById('default-route');
+            const bgpCheckbox = document.getElementById('BGP');
+            const textInputs = document.querySelectorAll('.toggle-input');
+
+            // Disable the other checkbox when one is selected
+            bgpCheckbox.disabled = defaultRouteCheckbox.checked;
+            defaultRouteCheckbox.disabled = bgpCheckbox.checked;
+
+            // Enable or disable the text inputs based on the BGP checkbox state
+            textInputs.forEach(input => {
+                input.disabled = !bgpCheckbox.checked;
+            });
+        }
+
+        // Attach the toggleTextInput function to the checkboxes
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('default-route').addEventListener('change', toggleTextInput);
+            document.getElementById('BGP').addEventListener('change', toggleTextInput);
+        });
+    </script>
+        <script>
+            function validateCIDR(input) {
+                const cidrPattern = /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/;
+                const cidrValue = input.value;
+    
+                if (!cidrPattern.test(cidrValue)) {
+                    alert("Invalid CIDR format. Please enter a value like 8.4.0.0/30");
+                    return false;
+                }
+    
+                const [ip, mask] = cidrValue.split('/');
+                const ipParts = ip.split('.').map(Number);
+                const maskValue = Number(mask);
+    
+                if (ipParts.some(part => part < 0 || part > 255)) {
+                    alert("Invalid IP address. Each octet must be between 0 and 255.");
+                    return false;
+                }
+    
+                if (maskValue < 0 || maskValue > 32) {
+                    alert("Invalid subnet mask. It must be between 0 and 32.");
+                    return false;
+                }
+    
+                return true;
+            }
+    
+            function validateIP(input) {
+                const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+                const ipValue = input.value;
+    
+                if (!ipPattern.test(ipValue)) {
+                    alert("Invalid IP format. Please enter a value like 192.168.0.1");
+                    return false;
+                }
+    
+                const ipParts = ipValue.split('.').map(Number);
+    
+                if (ipParts.some(part => part < 0 || part > 255)) {
+                    alert("Invalid IP address. Each octet must be between 0 and 255.");
+                    return false;
+                }
+    
+                return true;
+            }
+    
+            function validateVLAN(input) {
+                const vlanPattern = /^\d{1,4}$/;
+                const vlanValue = Number(input.value);
+    
+                if (!vlanPattern.test(input.value) || vlanValue < 1 || vlanValue > 4094) {
+                    alert("Invalid VLAN ID. It must be a number between 1 and 4094.");
+                    return false;
+                }
+    
+                return true;
+            }
+    
+            document.addEventListener('DOMContentLoaded', () => {
+                const form = document.getElementById('networkForm');
+                form.addEventListener('submit', (event) => {
+                    const vlanInput = document.getElementById('vlan');
+                    const wanInput = document.getElementById('wan');
+                    const gwInput = document.getElementById('gw');
+                    const mgmtInput = document.getElementById('mgmt');
+                    const gwMgmtInput = document.getElementById('gw_mgmt');
+                    const lanInput = document.getElementById('lan');
+    
+                    if (!validateVLAN(vlanInput) || !validateCIDR(wanInput) || !validateIP(gwInput) ||
+                        !validateCIDR(mgmtInput) || !validateIP(gwMgmtInput) || !validateCIDR(lanInput)) {
+                        event.preventDefault();
+                    }
+                });
+            });
+        </script>
+</head>
+<body>
+<header>
+    <div class="row" style="background-color: black; padding: 1%;">
+        <div class="col-xs-6 col-md-6" style="text-align: center; width: 33.33%;"><img src="/static/Ansible_Logo.png"
+                                                                                      width="110px"
+                                                                                      height="110px"/></div>
+        <div class="col-xs-6 col-md-6" style="color: white; text-align: center; width: 33.33%;">
+            <h2>Automation project</h2>
+            <p class="lead">Automate initial configuration for new network deployments.</p>
+            <h4>BBIP configuration - Internet service</h4>
+        </div>
+        <div class="col-xs-6 col-md-6" style="text-align: center; width: 33.33%;"><img src="/static/Orange_logo.svg"
+                                                                                      width="100px"
+                                                                                      height="100px"/></div>
+    </div>
+</header>
+<div class="container">
+    <main>
+        <div class="row g-5">
+            <div class="col-md-7 col-lg-8" style="width: 100%; padding-top: 2%;">
+                <form class="needs-validation" action="/submit_form_internet" method="post" novalidate>
+                    <div class="row g-3">
+                        <h4 class="mb-3" style="font-weight: bold;">TECHNICAL INTERNET INFORMATIONS : </h4>
+                        <div class="col-sm-6">
+                            <label for="vlan" class="form-label">Vlan ID :</label>
+                            <input type="text" class="form-control" id="vlan" name="vlan" placeholder="1100" pattern="\d{1,4}" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid VLAN ID (1-4094).
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="wan" class="form-label">WAN IP address :</label>
+                            <input type="text" class="form-control" id="wan" name="wan" placeholder="10.10.10.2/31"
+                                   pattern="^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid WAN IP address.
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="gw" class="form-label">GW IP address :</label>
+                            <input type="text" class="form-control" id="gw" name="gw" placeholder="10.10.10.1"
+                                   pattern="^(\d{1,3}\.){3}\d{1,3}$" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid GW IP address.
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="mgmt" class="form-label">Management IP address :</label>
+                            <input type="text" class="form-control" id="mgmt" name="mgmt" placeholder="192.168.0.2/24"
+                                   pattern="^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid management IP address.
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="gw_mgmt" class="form-label">Management IP address GW:</label>
+                            <input type="text" class="form-control" id="gw_mgmt" name="gw_mgmt" placeholder="192.168.0.1"
+                                   pattern="^(\d{1,3}\.){3}\d{1,3}$" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid management GW IP address.
+                            </div>
+                        </div>                        
+                        <div class="col-sm-6">
+                            <label for="lan" class="form-label">LAN :</label>
+                            <input type="text" class="form-control" id="lan" name="lan" placeholder="8.4.0.0/30"
+                                   pattern="^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid LAN.
+                            </div>
+                        </div>                        
+                        <h4 class="mb-4" style="font-weight: bold;padding-top: 2%;">SNMP and AAA : </h4>
+                        <div class="col-sm-6">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="AAA" name="AAA">
+                                <label class="form-check-label" for="AAA">Add AAA Configuration</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="SNMP" name="SNMP">
+                                <label class="form-check-label" for="SNMP">Add SNMP Configuration</label>
+                            </div>
+                        </div>
+                    </div>
+                        <h4 class="mb-4" style="font-weight: bold; padding-top: 2%;">ROUTING METHOD : </h4>
+                        <div class="col-sm-6">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="default-route" name="default-route">
+                                <label class="form-check-label" for="default-route">Add default route</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-16">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" onclick="toggleTextInput()" id="BGP" name="BGP">
+                                <label class="form-check-label" for="BGP">Add BGP Configuration</label>
+                            </div>
+                            <div class="col-sm-16">
+				                <label for="BGP-AS-CLIENT">BGP AS Client:</label>
+                		        <input type="text" class="form-control toggle-input" id="BGP-AS-CLIENT" name="BGP-AS-CLIENT" disabled required>
+                                <div class="invalid-feedback">
+                                    Please enter BGP AS Clien.
+                                </div>
+                            </div>
+                            <div class="col-sm-16" style="padding-bottom: 2%;">
+				                <label for="BGP-AS-CLIENT">BGP AS ISP:</label>
+                		        <input type="text" class="form-control toggle-input" id="BGP-AS-CLIENT" name="BGP-AS-CLIENT" disabled required>
+                                <div class="invalid-feedback">
+                                    Please enter BGP AS ISP.
+                                </div>
+                            </div>
+                        </div>
+                    <button class="w-100 btn btn-primary btn-md" type="submit">Generate YAML Internet customer</button>
+                </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+<script src="/static/main.js"></script>
+</body>
+</html>
