@@ -9,8 +9,6 @@ app.secret_key = 'automation'  # Required for session usage
 def index():
     return render_template('form.html')
 
-<<<<<<< HEAD
-=======
 @app.route('/customer')
 def customer():
     return render_template('customer.html')
@@ -19,7 +17,6 @@ def customer():
 def isp():
     return render_template('isp.html')
 
->>>>>>> c882309cf2de60e9aa1953e54fa296b97e156b94
 @app.route('/next_page', methods=['GET', 'POST'])
 def next_page():
     if request.method == 'POST':
