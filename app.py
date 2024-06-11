@@ -118,7 +118,7 @@ def submit_form():
         - snmp-server enable traps cpu threshold
         - snmp-server host 10.10.10.10 test
     when: snmp_output != snmp_config_present
-    when: {add_snmp}
+          when: {add_snmp}
 
   - name: gather AAA configuration
     cisco.ios.ios_command:
