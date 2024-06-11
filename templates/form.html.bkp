@@ -51,31 +51,31 @@
 </head>
 <body>
     <header>
-        <div class="row" style="background-color: black; padding: 1%;">
-            <div class="col-xs-6 col-md-6" style="text-align: center; width: 33.33%;"><img src="/static/Ansible_Logo.png"
-                                                                                          width="110px"
-                                                                                          height="110px"/></div>
-            <div class="col-xs-6 col-md-6" style="text-align: center; width: 33.33%; color: white;">
-                <h2>Automation project</h2>
+        <div class="row header-row justify-content-center align-items-center">
+            <div class="col-md-4 d-flex justify-content-center align-items-center">
+                <img src="/static/Ansible_Logo.png" width="100px" height="100px" alt="Ansible Logo"/>
+            </div>
+            <div class="col-md-4 text-center">
+                <h2>Automation Project</h2>
                 <p class="lead">Automate initial configuration for new network deployments.</p>
             </div>
-            <div class="col-xs-6 col-md-6" style="text-align: center; width: 33.33%;"><img src="/static/Orange_logo.svg"
-                                                                                          width="100px"
-                                                                                          height="100px"/></div>
+            <div class="col-md-4 d-flex justify-content-center align-items-center">
+                <img src="/static/Orange_logo.svg" alt="Orange Logo" width="100px" height="100px"/>
+            </div>
         </div>
     </header>
     <div class="container">
         <main>
             <div class="row main-row justify-content-center align-items-center">
                 <div class="col-md-4 link-container">
-                    <a href="/customer">
-                        <img src="/static/customer.png" id="customerImage" alt="Customer Logo" class="spaced-img" width="200px" height="200px"/>
+                    <a href="/customer.html">
+                        <img src="/static/customer.png" alt="Customer Logo" class="spaced-img" width="200px" height="200px"/>
                         <p>Customer Configuration</p>
                     </a>
                 </div>
                 <div class="col-md-4 link-container">
-                    <a href="/isp">
-                        <img src="/static/Orange_logo.svg" id="ispImage" alt="Orange Logo" class="spaced-img" width="200px" height="200px"/>
+                    <a href="/isp.html">
+                        <img src="/static/Orange_logo.svg" alt="Orange Logo" class="spaced-img" width="200px" height="200px"/>
                         <p>Orange configuration</p>
                     </a>
                 </div>
@@ -84,15 +84,5 @@
     </div>
     <script src="/static/main.js"></script>
     <script src="/static/index.js"></script>
-
-    <script>
-        document.getElementById('customerImage').addEventListener('click', function() {
-            window.location.href = '/customer';
-        });
-        
-        document.getElementById('ispImage').addEventListener('click', function() {
-            window.location.href = '/isp';
-        });
-    </script>
 </body>
 </html>

@@ -20,11 +20,10 @@ def isp():
 @app.route('/next_page', methods=['GET', 'POST'])
 def next_page():
     if request.method == 'POST':
-        # Assuming 'customer' is part of your form data
         customer = request.form.get('customer')
         session['customer'] = customer  # Store customer in session
         servicetype = request.form.get('servicetype')
-        
+ 
         # Redirect based on servicetype selection
         if servicetype == 'internet':
             return redirect(url_for('internet'))
@@ -65,7 +64,7 @@ def submit_form():
     try:
         lan_network = ipaddress.ip_network(lan, strict=False)
         lan_ip = list(lan_network.hosts())[0]  # Get the second host address in the subnet
-        incremented_ip = int(lan_ip)
+        incremented_ip = int(lan_ip) + 1
         incremented_lan = f"{ipaddress.ip_address(incremented_ip)}/{lan_network.prefixlen}"
     except ValueError as e:
         return jsonify({'status': 'error', 'message': str(e)})
@@ -262,26 +261,32 @@ def submit_form():
     playbook_filename = f"{customer}_{safe_mgmt}.yml"
     playbook_path = os.path.join(playbook_directory, playbook_filename)
 
+    # Ensure the playbook directory exists
+    os.makedirs(playbook_directory, exist_ok=True)
+
     # Save playbook to the specified directory
     with open(playbook_path, 'w') as playbook_file:
         playbook_file.write(playbook_content)
 
     # Define the path where the inventory should be saved
-    working_directory = os.getcwd()
     inventory_directory = os.path.join(working_directory, 'inventory')
     inventory_filename = f"inventory_{customer}_{safe_mgmt}.yml"
+    inventory_path = os.path.join(inventory_directory, inventory_filename)
+
+    # Ensure the inventory directory exists
+    os.makedirs(inventory_directory, exist_ok=True)
 
     # Sanitize inputs to remove slashes
     inv_safe_mgmt = mgmt.split("/")[0]
     inventory_content = f"""[customer_{customer}]
 {inv_safe_mgmt}
-     """
-    inventory_path = os.path.join(inventory_directory, inventory_filename)
+    """
 
-    # Save playbook to the specified directory
+    # Save inventory to the specified directory
     with open(inventory_path, 'w') as inventory_file:
         inventory_file.write(inventory_content)
-    return jsonify({'status': 'success', 'message': f'inventory generated and saved to {inventory_path} and Playbook generated and saved to {playbook_path}'})
+
+    return jsonify({'status': 'success', 'message': f'Inventory generated and saved to {inventory_path} and Playbook generated and saved to {playbook_path}'})
 
 if __name__ == '__main__':
     app.run(debug=True)
