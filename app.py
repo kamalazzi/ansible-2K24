@@ -526,7 +526,7 @@ def submit_form_voix_isp():
     cisco.ios.ios_config:
       lines:
         - encapsulation dot1Q {vlan_voice_isp}
-        - ip vrf forwarding voice
+        - vrf forwarding voice
       parents: interface FastEthernet0/1.{vlan_voice_isp}
 
   - name: Configure FastEthernet0/1.{vlan_voice_isp} - Service

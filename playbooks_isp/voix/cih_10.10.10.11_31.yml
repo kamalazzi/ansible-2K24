@@ -11,13 +11,6 @@
     ansible_connection: ansible.netcommon.network_cli
     ansible_network_cli_ssh_type: paramiko
   tasks:
-  - name: Configure VRF
-    cisco.ios.ios_config:
-      lines:
-        - ip vrf voice
-        - rd 100:1
-      parents: vrf definition voice
-  
   - name: Configure a vrf named management
     cisco.ios.ios_vrf:
       name: voice
@@ -34,7 +27,7 @@
           enabled: true
       state: merged
 
-  - name: Create subinterface FastEthernet0/1.2221
+  - name: Create subinterface FastEthernet0/0.2221
     cisco.ios.ios_config:
       lines:
         - encapsulation dot1Q 2221
