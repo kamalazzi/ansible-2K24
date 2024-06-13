@@ -65,6 +65,8 @@ def submit_form_internet():
     gw_mgmt = request.form['gw_mgmt']
     mgmt = request.form['mgmt']
     lan = request.form['lan']
+    bgp_as_isp = request.form['BGP-AS-ISP']
+    bgp_as_client = request.form['BGP-AS-CLIENT']
     add_default_route = 'default-route' in request.form  # Checkbox handling
     add_aaa = 'AAA' in request.form  # Checkbox handling
     add_snmp = 'SNMP' in request.form  # Checkbox handling
@@ -211,13 +213,13 @@ def submit_form_internet():
   - name: Configuration BGP with route-map
     cisco.ios.ios_bgp_global:
       config:
-        as_number: 65000
+        as_number: {bgp_as_client}
         bgp:
           log_neighbor_changes: true
         neighbor:
           - address: {gw}
             description: ISP neighbor
-            remote_as: 65001
+            remote_as: {bgp_as_isp}
             route_map:
               name: Advertised_routes
               out: true
