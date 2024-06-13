@@ -65,8 +65,8 @@ def submit_form_internet():
     gw_mgmt = request.form['gw_mgmt']
     mgmt = request.form['mgmt']
     lan = request.form['lan']
-    bgp_as_isp = request.form['BGP-AS-ISP']
-    bgp_as_client = request.form['BGP-AS-CLIENT']
+    bgp_as_isp = request.form['bgp_as_isp']
+    bgp_as_client = request.form['bgp_as_client']
     add_default_route = 'default-route' in request.form  # Checkbox handling
     add_aaa = 'AAA' in request.form  # Checkbox handling
     add_snmp = 'SNMP' in request.form  # Checkbox handling
