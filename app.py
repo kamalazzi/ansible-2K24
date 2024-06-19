@@ -67,6 +67,7 @@ def submit_form_internet():
     lan = request.form['lan']
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     bgp_as_isp = request.form['bgp_as_isp']
     bgp_as_client = request.form['bgp_as_client']
 =======
@@ -75,6 +76,8 @@ def submit_form_internet():
     bgp_as_isp = request.form['BGP-AS-ISP']
     bgp_as_client = request.form['BGP-AS-CLIENT']
 >>>>>>> parent of dc117f9... modify variables bgp as isp and client
+=======
+>>>>>>> parent of cddb98d... add isp and client AS BGP
     add_default_route = 'default-route' in request.form  # Checkbox handling
     add_aaa = 'AAA' in request.form  # Checkbox handling
     add_snmp = 'SNMP' in request.form  # Checkbox handling
