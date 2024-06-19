@@ -66,8 +66,11 @@ def submit_form_internet():
     mgmt = request.form['mgmt']
     lan = request.form['lan']
 <<<<<<< HEAD
+<<<<<<< HEAD
     bgp_as_isp = request.form['bgp_as_isp']
     bgp_as_client = request.form['bgp_as_client']
+=======
+>>>>>>> parent of dc117f9 (modify variables bgp as isp and client)
 =======
 >>>>>>> parent of dc117f9 (modify variables bgp as isp and client)
     bgp_as_isp = request.form['BGP-AS-ISP']
